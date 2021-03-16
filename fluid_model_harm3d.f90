@@ -635,7 +635,7 @@
         allocate(vrl(n)); allocate(vtl(n)); allocate(vpl(n))
         allocate(u(n)); allocate(b(n))
         do k=1,nt
-           write(append, fmt='(I3.3)') indf-(k-1)
+           write(append, fmt='(I5.5)') indf-(k-1)
            data_file = trim(dfile) // append
 !           write(6,*) 'data_file: ',indf-(k-1),append,data_file
            call read_harm3d_data_file(data_file,tcur,rho,p,u,b)
