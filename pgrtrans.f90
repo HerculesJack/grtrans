@@ -16,7 +16,7 @@
             cflag, extra, debug,outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,epcoefindx,epotherargs,nepotherargs)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,tfactor,epcoefindx,epotherargs,nepotherargs)
            
              use omp_lib
        !       use grtrans_inputs
@@ -52,7 +52,7 @@
                  fnr,foffset,fdindf,fmagcrit,fbl06
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
                  ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta,ftp,fnp, &
-                 frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut
+                 frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,tfactor
             real(8), dimension(nepotherargs), intent(in) :: epotherargs
 !            integer, intent(in) :: nepcoefindx
             integer, dimension(7), intent(in) :: epcoefindx
@@ -132,6 +132,7 @@
                sparams(iii)%p1=p1
                sparams(iii)%p2=p2
                sparams(iii)%sigcut=sigcut
+               sparams(iii)%tfactor=tfactor
                call assign_source_params_type(sparams(iii),stype)
             enddo
             allocate(c(NCAMS))
@@ -158,7 +159,7 @@
             call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,tfactor)
             write(6,*) 'load fluid model ',fname,spin
             call load_fluid_model(fname,spin,fargs)
 

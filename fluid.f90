@@ -48,7 +48,7 @@
 
       type fluid
         integer :: model, nfreq, nrelbin
-        real :: rin,bingammamin,bingammamax,sigcut,gamma
+        real :: rin,bingammamin,bingammamax,sigcut,tfactor,gamma
         real, dimension(:), allocatable :: rho,p,bmag,rho2, &
              kela,kelb,kelc,keld,Be
         real, dimension(:,:), allocatable :: fnu
@@ -62,14 +62,14 @@
               dindf,magcrit,bl06
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta, &
-              np,tp,rin,rout,thin,thout,phiin,phiout,scalefac,sigcut
+              np,tp,rin,rout,thin,thout,phiin,phiout,scalefac,sigcut,tfactor
       end type
 
 ! added sigcut here instead of in fluid
       type source_params
 !        real(kind=8), dimension(:), allocatable :: mdot,lleddeta,mu
         real(kind=8) :: nfac,bfac,mbh,mdot,p1,p2,gmax,gminval, &
-             jetalphaval,muval,sigcut
+             jetalphaval,muval,sigcut,tfactor
         real(kind=8), dimension(:), allocatable :: gmin,jetalpha,mu
         integer :: type
       end type
@@ -134,14 +134,14 @@
         subroutine assign_fluid_args(fargs,dfile,hfile,gfile,sim,nt,indf,nfiles,jonfix, &
              nw,nfreq_tab,nr,offset,dindf,magcrit,rspot,r0spot,n0spot,tscl,rscl, &
              wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06,np,tp, &
-             rin,rout,thin,thout,phiin,phiout,scalefac,sigcut)
+             rin,rout,thin,thout,phiin,phiout,scalefac,sigcut,tfactor)
           type (fluid_args), intent(inout) :: fargs
           character(len=100), intent(in) :: dfile,hfile,gfile,sim
           integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf, &
                magcrit,bl06
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
                fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,np,tp, &
-               rin,rout,thin,thout,phiin,phiout,scalefac,sigcut
+               rin,rout,thin,thout,phiin,phiout,scalefac,sigcut,tfactor
           write(6,*) 'in fluid args'
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
           fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
@@ -157,7 +157,7 @@
           fargs%rin = rin; fargs%rout = rout; fargs%thin = thin
           fargs%thout = thout; fargs%phiin = phiin; fargs%phiout = phiout
           write(6,*) 'after assign fluid args: ',sigcut
-          fargs%scalefac=scalefac; fargs%sigcut=sigcut
+          fargs%scalefac=scalefac; fargs%sigcut=sigcut; fargs%tfactor=tfactor
         end subroutine assign_fluid_args
 
         subroutine load_fluid_model(fname,a,fargs)
@@ -763,8 +763,9 @@
 
 ! scale code to cgs units given mbh and simulation and cgs mdot values
         subroutine scale_sim_units(mbh,mdotcgs,mdot,rho,p,bmag, &
-             ncgs,bcgs,tempcgs)
+             ncgs,bcgs,tempcgs,tfactor)
           real(kind=8), intent(in) :: mbh,mdot,mdotcgs
+          real(kind=8), intent(in) :: tfactor
           real(kind=8) :: lcgs,tcgs
           real, dimension(:) :: rho,p,bmag
           real(kind=8), dimension(size(rho)) :: rhocgs,pcgs
@@ -779,6 +780,7 @@
         pcgs=p*rhocgs/rho*c**2d0
         ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
         tempcgs=pcgs/ncgs/k
+        tempcgs=tempcgs*tfactor
         ! finally, bfield conversion is just square root of this:
         bcgs=bmag*sqrt(rhocgs/rho)*c
         ! Convert HL units to cgs:
@@ -930,7 +932,7 @@
         real(kind=8) :: mdot,beta_trans
         mdot=0.0013; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
-             bcgs,tempcgs)
+             bcgs,tempcgs,dble(sp%tfactor))
         call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
         tempcgs = tempcgs/(1d0+trat)
@@ -946,7 +948,7 @@
         real(kind=8) :: mdot,beta_trans
         mdot=.0013; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
-             bcgs,tempcgs)
+             bcgs,tempcgs,dble(sp%tfactor))
         call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
         tempcgs = tempcgs/(1d0+trat)
@@ -962,7 +964,7 @@
         real(kind=8) :: mdot,beta_trans
         mdot=.003; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
-             bcgs,tempcgs)
+             bcgs,tempcgs,dble(sp%tfactor))
 ! Moscibrodzka+2016 e- model with rlow = T_p / T_e from muval, rhigh = gmin*rlow
 ! reduces to T_p / T_e = const when gmin = 1 (should change input used for this)
 ! CHANGED TO USE MU INSTEAD OF TRAT to allow mu > 1/2 models to make sense 3/21/2017
@@ -980,7 +982,7 @@
         real(kind=8) :: mdot,beta_trans
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
-             bcgs,tempcgs)
+             bcgs,tempcgs,dble(sp%tfactor))
 !        write(6,*) 'tempcgs: ',minval(tempcgs),maxval(tempcgs),minval(f%p/f%rho),maxval(f%p/f%rho)
         call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
@@ -1000,7 +1002,7 @@
         real(kind=8) :: mdot,beta_trans
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
-             bcgs,tempcgs)
+             bcgs,tempcgs,dble(sp%tfactor))
         rhocgs=ncgs*mp
         ! here f%p = u while monika_e expects pressure to convert
         ! to beta. workaround for now assigning f%gamma and using here
@@ -1033,7 +1035,7 @@
         real(kind=8) :: mdot,beta_trans
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
-             bcgs,tempcgs)
+             bcgs,tempcgs,dble(sp%tfactor))
         rhocgs=ncgs*mp
 ! to use ressler_e call grtrans with gmin = -1
 !        write(6,*) 'harmpi convert: ',sp%gminval,allocated(f%kel)
