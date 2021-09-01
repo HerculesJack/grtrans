@@ -16,7 +16,8 @@
             cflag, extra, debug,outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,tfactor,epcoefindx,epotherargs,nepotherargs)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,tfactor, &
+            r0,c0,calpha,alpha,epcoefindx,epotherargs,nepotherargs)
            
              use omp_lib
        !       use grtrans_inputs
@@ -52,7 +53,8 @@
                  fnr,foffset,fdindf,fmagcrit,fbl06
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
                  ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta,ftp,fnp, &
-                 frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,tfactor
+                 frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,tfactor, &
+                 r0,c0,calpha,alpha
             real(8), dimension(nepotherargs), intent(in) :: epotherargs
 !            integer, intent(in) :: nepcoefindx
             integer, dimension(7), intent(in) :: epcoefindx
@@ -133,6 +135,10 @@
                sparams(iii)%p2=p2
                sparams(iii)%sigcut=sigcut
                sparams(iii)%tfactor=tfactor
+               sparams(iii)%r0=r0
+               sparams(iii)%c0=c0
+               sparams(iii)%calpha=calpha
+               sparams(iii)%alpha=alpha
                call assign_source_params_type(sparams(iii),stype)
             enddo
             allocate(c(NCAMS))

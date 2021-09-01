@@ -104,7 +104,7 @@
           uks%data(4)=uph
         end function umksh2uks
 
-        subroutine harm3d_vals(x0,a,rho,p,b,u,bmag)
+        subroutine harm3d_vals(x0,a,r,rho,p,b,u,bmag)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         real(kind=8), dimension(size(x0)) :: done,pfac,nfac,bfac
@@ -122,7 +122,7 @@
         integer, dimension(size(x0)) :: lx1,lx2, lx3, ux1,ux2,ux3,x1l,x1u,x2l,x2u,x3l,x3u, &
          umax,one,tindx
         integer :: npts,i,maxtindx
-        real, dimension(size(x0)), intent(out) :: rho,p,bmag
+        real, dimension(size(x0)), intent(out) :: r,rho,p,bmag
         type (four_Vector), intent(out), dimension(size(x0)) :: u,b
         ! Interpolates HARM data to input coordinates
         ! JAD 3/20/2009, fortran 11/12/2012
@@ -271,6 +271,8 @@
         rttd=0.
         rho=interp(rhoi,rttd,pd,rd,td)*nfac
         p=interp(ppi,rttd,pd,rd,td)*pfac
+        r=interp(ri,rttd,pd,rd,td)
+        write(6,*) 'r min max harm3d: ', minval(r), maxval(r)
 !        rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
 !        p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
 !        write(6,*) 'rho: ', rho, p
@@ -300,6 +302,10 @@
         u%data(4)=u%data(1)*dble(vph0)
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
+!        write(6,*) 'harm vals minloc x0: ', ri(minloc(zr),:),thi(minloc(zr),:),&
+!             phii(minloc(zr),:)
+!        write(6,*) 'harm vals maxloc x0: ', ri(maxloc(zr),:),thi(maxloc(zr),:),&
+!             phii(maxloc(zr),:)
  !       write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
  !       write(6,*) 'minmax vals: ',minval(rho),maxval(rho),minval(bmag),minval(p)
 !        write(6,*) 'harm vals r: ',zr

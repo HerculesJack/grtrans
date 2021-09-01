@@ -49,7 +49,7 @@
       type fluid
         integer :: model, nfreq, nrelbin
         real :: rin,bingammamin,bingammamax,sigcut,tfactor,gamma
-        real, dimension(:), allocatable :: rho,p,bmag,rho2, &
+        real, dimension(:), allocatable :: r,rho,p,bmag,rho2, &
              kela,kelb,kelc,keld,Be
         real, dimension(:,:), allocatable :: fnu
         real, dimension(:,:), allocatable :: nnth
@@ -69,7 +69,7 @@
       type source_params
 !        real(kind=8), dimension(:), allocatable :: mdot,lleddeta,mu
         real(kind=8) :: nfac,bfac,mbh,mdot,p1,p2,gmax,gminval, &
-             jetalphaval,muval,sigcut,tfactor
+             jetalphaval,muval,sigcut,tfactor,r0,c0,calpha,alpha
         real(kind=8), dimension(:), allocatable :: gmin,jetalpha,mu
         integer :: type
       end type
@@ -295,6 +295,7 @@
            allocate(f%u(nup))
 ! rho is used to store T for thindisk...
            allocate(f%rho(nup))
+           allocate(f%r(nup))
            allocate(f%b(nup))
            if(fname=='THINDISK') then
               f%model=THINDISK
@@ -430,7 +431,7 @@
            deallocate(f%u); deallocate(f%fnu)
            deallocate(f%b)
         else
-           deallocate(f%u); deallocate(f%rho); deallocate(f%b)
+           deallocate(f%u); deallocate(f%rho); deallocate(f%r); deallocate(f%b)
 !           write(6,*) 'del_fluid: ',f%model,THINDISK
            if(f%model.ne.THINDISK.and.f%model.ne.NUMDISK) then
               deallocate(f%p)
@@ -702,7 +703,7 @@
         type (fluid), intent(inout) :: f
         ! Computes properties of jet solution from Broderick & Loeb (2009)
         ! JAD 4/23/2010, fortran 3/30/2011
-        call harm3d_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
+        call harm3d_vals(x0,a,f%r,f%rho,f%p,f%b,f%u,f%bmag)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
         end subroutine get_harm3d_fluidvars
 
@@ -891,9 +892,19 @@
           endwhere
 ! changed to add 1+trat to have maximum T_e = T_tot / 2
 !          tempcgs=(p/rho)*mp*c*c/k/(1d0+trat)
-      end subroutine monika_e
+        end subroutine monika_e
 
-      subroutine ressler_e(rho,kel,tcgs)
+        subroutine rpower_e(r,r0,c0,calpha,alpha,trat)
+          real(kind=8), intent(in) :: r0,c0,calpha,alpha
+          real(kind=4), intent(in), dimension(:) :: r
+          real(kind=8), intent(inout), dimension(size(r)) :: trat
+          trat = c0+calpha*(r0/r)**alpha
+          write(6,*) 'r min max: ', minval(r), maxval(r)
+          write(6,*) 'r0/r min max: ', minval(r0/r), maxval(r0/r)
+          write(6,*) 'trat min max: ', minval(trat), maxval(trat)
+        end subroutine rpower_e
+
+        subroutine ressler_e(rho,kel,tcgs)
           real(kind=4), intent(in), dimension(:) :: kel,rho
           real(kind=8), intent(inout), dimension(size(rho)) :: tcgs
           real(kind=8), dimension(size(rho)) :: thetae
@@ -984,8 +995,12 @@
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs,dble(sp%tfactor))
 !        write(6,*) 'tempcgs: ',minval(tempcgs),maxval(tempcgs),minval(f%p/f%rho),maxval(f%p/f%rho)
-        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
-             sp%gminval*(1d0/sp%muval-1d0),trat)
+        if((sp%c0.lt.0d0).and.(sp%calpha.lt.0d0)) then
+            call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+                 sp%gminval*(1d0/sp%muval-1d0),trat)
+        else
+            call rpower_e(f%r,sp%r0,sp%c0,sp%calpha,sp%alpha,trat)
+        endif
         tempcgs = tempcgs/(1d0+trat)
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
