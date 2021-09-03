@@ -894,6 +894,26 @@
 !          tempcgs=(p/rho)*mp*c*c/k/(1d0+trat)
         end subroutine monika_e
 
+        subroutine rpower_monika_e(r,p,b,rlow,rhigh,r0,c0,calpha,alpha,trat)
+          real(kind=8), intent(in) :: r0,c0,calpha,alpha,rhigh
+          real(kind=8), intent(in) :: rlow
+          real(kind=4), intent(in), dimension(:) :: r,p,b
+          real(kind=8), intent(inout), dimension(size(r)) :: trat
+          real(kind=8), dimension(size(r)) :: beta,b2,rh
+          beta=p/(b*b)/0.5d0
+          b2=beta*beta
+          if((c0.ge.0d0).or.(calpha.ge.0d0)) then
+             rh=c0+calpha*(r0/r)**alpha
+          else
+             rh=rhigh
+          endif
+          where(b.gt.0d0)
+             trat=rh*b2/(1d0+b2)+rlow/(1d0+b2)
+          elsewhere
+             trat=rhigh
+          endwhere
+        end subroutine rpower_monika_e
+        
         subroutine rpower_e(r,r0,c0,calpha,alpha,trat)
           real(kind=8), intent(in) :: r0,c0,calpha,alpha
           real(kind=4), intent(in), dimension(:) :: r
@@ -995,12 +1015,10 @@
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs,dble(sp%tfactor))
 !        write(6,*) 'tempcgs: ',minval(tempcgs),maxval(tempcgs),minval(f%p/f%rho),maxval(f%p/f%rho)
-        if((sp%c0.lt.0d0).and.(sp%calpha.lt.0d0)) then
-            call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
-                 sp%gminval*(1d0/sp%muval-1d0),trat)
-        else
-            call rpower_e(f%r,sp%r0,sp%c0,sp%calpha,sp%alpha,trat)
-        endif
+!        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+!             sp%gminval*(1d0/sp%muval-1d0),trat)
+        call rpower_monika_e(f%r,f%p,f%bmag,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),sp%r0,sp%c0,sp%calpha,sp%alpha,trat)
         tempcgs = tempcgs/(1d0+trat)
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
