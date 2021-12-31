@@ -139,10 +139,10 @@
         uniqr=exp(uniqx1)
         uniqth=pi*uniqx2
         uniqph=uniqx3
-!        write(6,*) 'uniqx1: ',minval(uniqx1),maxval(uniqx1)
-!        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
-!        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
-!        write(6,*) 'uniqph: ',minval(uniqph), maxval(uniqph)
+        write(6,*) 'uniqx1: ',minval(uniqx1),maxval(uniqx1)
+        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
+        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
+        write(6,*) 'uniqph: ',minval(uniqph), maxval(uniqph)
         npts=size(x0)
         theta=x0%data(3)
         zr=x0%data(2)
@@ -213,9 +213,11 @@
            nfac=1d0
            bfac=1d0
         endwhere
-!        write(6,*) 'coords: ',
-!        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
-!        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
+        write(6,*) 'coords: '
+        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
+        write(6,*) 'pd: ',pd(1:5),zphi(1:5),minph(1:5),dth(1:5),uniqr(ux1(1:5)),uniqr(lx1(1:5))
+        write(6,*) 'uniq: ',uniqph(1:5),uniqth(1:5),uniqr(1:5)
+        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
         ! th is fastest changing index
         x3l=lx3-1; x3u=ux3-1
         x2l=(lx2-1)*nx3 ; x2u=(ux2-1)*nx3
@@ -272,7 +274,16 @@
         rho=interp(rhoi,rttd,pd,rd,td)*nfac
         p=interp(ppi,rttd,pd,rd,td)*pfac
         r=interp(ri,rttd,pd,rd,td)
-        write(6,*) 'r min max harm3d: ', minval(r), maxval(r)
+        write(6,*) 'ri min max harm3d: ', minval(ri), maxval(ri), shape(ri)
+        write(6,*) 'thi min max harm3d: ', minval(thi), maxval(thi), shape(thi)
+        write(6,*) 'phii min max harm3d: ', minval(phii), maxval(phii), shape(phii)
+        write(6,*) 'rho min max harm3d: ', minval(rho), maxval(rho), shape(rho)
+        write(6,*) 'p min max harm3d: ', minval(p), maxval(p), shape(p)
+        write(6,*) 'r min max harm3d: ', minval(r), maxval(r), shape(r)
+        write(6,*) 'rttd min max harm3d: ', minval(rttd), maxval(rttd), shape(rttd)
+        write(6,*) 'pd min max harm3d: ', minval(pd), maxval(pd), shape(pd)
+        write(6,*) 'rd min max harm3d: ', minval(rd), maxval(rd), shape(rd)
+        write(6,*) 'td min max harm3d: ', minval(td), maxval(td), shape(td)
 !        rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
 !        p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
 !        write(6,*) 'rho: ', rho, p
@@ -447,7 +458,7 @@
           else
 ! CHANGING FOR CHRIS WHITE VERSION
              data_file_app = trim(data_file) // '.bin'
-             call read_harm3d_data(data_file_app,rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
+             call read_harm3d_data_lite(data_file_app,rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
                   b%data(2),b%data(3),b%data(4),grid)
              x1_arr=real(grid(:,1)); x2_arr=real(grid(:,2)); x3_arr=real(grid(:,3))
 !             call read_harm3d_grid_file()
@@ -588,6 +599,68 @@
 !        ui2=metric(:,1)+2.*metric(:,4)*vph+vr**2*metric(:,5)+metric(:,8)*vth**2+metric(:,10)*vph**2
 !        u0=1./sqrt(-ui2)
         end subroutine read_harm3d_data
+
+
+        subroutine read_harm3d_data_lite(dfile,rho,p,u0,vr,vth,vph,b0,br,bth,bph,grid)
+        integer :: nx, status, dlen, nheader_bytes,rhopos,ppos,vpos,bpos
+        real, dimension(:,:), allocatable :: data
+        real(8), intent(inout), dimension(:) :: rho,p,u0,vr,vth,vph,b0,br,bth,bph
+        real(8), intent(inout), dimension(:,:) :: grid
+        real, dimension(size(rho),10) :: metric
+        real, dimension(size(rho)) :: ui2
+        character(len=100), intent(in) :: dfile
+        character :: header_byte
+        !open(unit=8,file=dfile,form='unformatted',status='old')
+!        read(8) nx
+!        if(nx.ne.10*nx1*nx2*nx3) then
+!           write(6,*) 'ERROR: INCORRECT DATA SIZE IN READ_HARM3D_DATA: ',nx,nx1,nx2,nx3
+!           return
+!        endif
+!        allocate(data(nx))
+!        read(8) data
+!        close(8)
+
+!        modified by He Jia for the H-AMR simulation data
+!        TODO: add an option to choose whether it's lite or not
+
+! CHRIS NUMBERS
+        dlen=16
+!        rhopos=10; ppos=rhopos+1; vpos=19; bpos=vpos+8
+        allocate(data(dlen,nx1*nx2*nx3))
+
+        open(unit=8,file=dfile,form='unformatted',access='stream',status='old',action='read')
+        nheader_bytes=1
+        read(8) header_byte
+        do while(header_byte.ne.char(10))
+           read(8) header_byte
+           nheader_bytes=nheader_bytes+1
+        end do
+        write(6,*) 'read header: ',nheader_bytes,dlen
+        read(8) data
+        close(8)
+
+        write(6,*) 'data first entry: ',data(:,1)
+        write(6,*) 'data last entry: ',data(:,nx1*nx2*nx3)
+
+        grid=transpose(data(1:6,:))
+        rho=data(7,:)
+        p=data(8,:)
+        u0=data(9,:)
+        vr=data(10,:)
+        vth=data(11,:)
+        vph=data(12,:)
+        b0=data(13,:)
+        br=data(14,:)
+        bth=data(15,:)
+        bph=data(16,:)
+
+        deallocate(data)
+! calculate u0 from others (from IDL grtrans):
+!        metric=kerr_metric(r_arr,th_arr,asim)
+!        ui2=metric(:,1)+2.*metric(:,4)*vph+vr**2*metric(:,5)+metric(:,8)*vth**2+metric(:,10)*vph**2
+!        u0=1./sqrt(-ui2)
+        end subroutine read_harm3d_data_lite
+
 
         subroutine initialize_harm3d_model(a,ifile,df,hf,gf,ntt,indft)
         real(kind=8), intent(in) :: a
