@@ -139,10 +139,10 @@
         uniqr=exp(uniqx1)
         uniqth=pi*uniqx2
         uniqph=uniqx3
-        write(6,*) 'uniqx1: ',minval(uniqx1),maxval(uniqx1)
-        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
-        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
-        write(6,*) 'uniqph: ',minval(uniqph), maxval(uniqph)
+!        write(6,*) 'uniqx1: ',minval(uniqx1),maxval(uniqx1)
+!        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
+!        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
+!        write(6,*) 'uniqph: ',minval(uniqph), maxval(uniqph)
         npts=size(x0)
         theta=x0%data(3)
         zr=x0%data(2)
@@ -213,11 +213,11 @@
            nfac=1d0
            bfac=1d0
         endwhere
-        write(6,*) 'coords: '
-        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
-        write(6,*) 'pd: ',pd(1:5),zphi(1:5),minph(1:5),dth(1:5),uniqr(ux1(1:5)),uniqr(lx1(1:5))
-        write(6,*) 'uniq: ',uniqph(1:5),uniqth(1:5),uniqr(1:5)
-        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
+!        write(6,*) 'coords: '
+!        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
+!        write(6,*) 'pd: ',pd(1:5),zphi(1:5),minph(1:5),dth(1:5),uniqr(ux1(1:5)),uniqr(lx1(1:5))
+!        write(6,*) 'uniq: ',uniqph(1:5),uniqth(1:5),uniqr(1:5)
+!        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
         ! th is fastest changing index
         x3l=lx3-1; x3u=ux3-1
         x2l=(lx2-1)*nx3 ; x2u=(ux2-1)*nx3
@@ -274,16 +274,16 @@
         rho=interp(rhoi,rttd,pd,rd,td)*nfac
         p=interp(ppi,rttd,pd,rd,td)*pfac
         r=interp(ri,rttd,pd,rd,td)
-        write(6,*) 'ri min max harm3d: ', minval(ri), maxval(ri), shape(ri)
-        write(6,*) 'thi min max harm3d: ', minval(thi), maxval(thi), shape(thi)
-        write(6,*) 'phii min max harm3d: ', minval(phii), maxval(phii), shape(phii)
+!        write(6,*) 'ri min max harm3d: ', minval(ri), maxval(ri), shape(ri)
+!        write(6,*) 'thi min max harm3d: ', minval(thi), maxval(thi), shape(thi)
+!        write(6,*) 'phii min max harm3d: ', minval(phii), maxval(phii), shape(phii)
         write(6,*) 'rho min max harm3d: ', minval(rho), maxval(rho), shape(rho)
         write(6,*) 'p min max harm3d: ', minval(p), maxval(p), shape(p)
         write(6,*) 'r min max harm3d: ', minval(r), maxval(r), shape(r)
-        write(6,*) 'rttd min max harm3d: ', minval(rttd), maxval(rttd), shape(rttd)
-        write(6,*) 'pd min max harm3d: ', minval(pd), maxval(pd), shape(pd)
-        write(6,*) 'rd min max harm3d: ', minval(rd), maxval(rd), shape(rd)
-        write(6,*) 'td min max harm3d: ', minval(td), maxval(td), shape(td)
+!        write(6,*) 'rttd min max harm3d: ', minval(rttd), maxval(rttd), shape(rttd)
+!        write(6,*) 'pd min max harm3d: ', minval(pd), maxval(pd), shape(pd)
+!        write(6,*) 'rd min max harm3d: ', minval(rd), maxval(rd), shape(rd)
+!        write(6,*) 'td min max harm3d: ', minval(td), maxval(td), shape(td)
 !        rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
 !        p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
 !        write(6,*) 'rho: ', rho, p
